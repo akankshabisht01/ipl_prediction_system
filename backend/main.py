@@ -42,26 +42,40 @@ def download_model():
         
         try:
             # Extract file ID from Google Drive URL
-            file_id = re.search(r'/d/(.*?)/view', model_url)
+            file_id = None
+            patterns = [
+                r'/d/(.*?)/view',  # Standard sharing URL
+                r'id=([^&]+)',     # Direct ID format
+                r'/file/d/(.*?)/'  # Alternative sharing URL
+            ]
+            
+            for pattern in patterns:
+                match = re.search(pattern, model_url)
+                if match:
+                    file_id = match.group(1)
+                    break
+            
             if not file_id:
-                # Try direct ID format
-                file_id = re.search(r'id=([^&]+)', model_url)
-                if not file_id:
-                    raise Exception("Invalid Google Drive URL format")
-            file_id = file_id.group(1)
+                raise Exception("Could not extract file ID from URL")
             
             # Use gdown to download the file with the correct URL format
             output = MODEL_PATH
             url = f'https://drive.google.com/uc?id={file_id}'
             
-            # Add retry logic
-            max_retries = 3
-            retry_delay = 5  # seconds
+            # Add retry logic with exponential backoff
+            max_retries = 5
+            base_delay = 2  # seconds
             
             for attempt in range(max_retries):
                 try:
                     logger.info(f"Download attempt {attempt + 1} of {max_retries}")
+                    # Try with fuzzy=True first
                     gdown.download(url=url, output=output, quiet=False, fuzzy=True)
+                    
+                    if not os.path.exists(MODEL_PATH):
+                        # If fuzzy fails, try without fuzzy
+                        logger.info("Fuzzy download failed, trying direct download...")
+                        gdown.download(url=url, output=output, quiet=False, fuzzy=False)
                     
                     if os.path.exists(MODEL_PATH):
                         try:
@@ -79,15 +93,16 @@ def download_model():
                         
                 except Exception as e:
                     if attempt < max_retries - 1:
+                        delay = base_delay * (2 ** attempt)  # Exponential backoff
                         logger.warning(f"Download attempt {attempt + 1} failed: {str(e)}")
-                        logger.info(f"Retrying in {retry_delay} seconds...")
-                        time.sleep(retry_delay)
+                        logger.info(f"Retrying in {delay} seconds...")
+                        time.sleep(delay)
                     else:
                         raise Exception(f"Failed to download model after {max_retries} attempts: {str(e)}")
                 
         except Exception as e:
             logger.error(f"Error downloading model: {str(e)}")
-            raise Exception(f"Model download failed: {str(e)}. Please ensure the file is publicly accessible on Google Drive.")
+            raise Exception(f"Model download failed: {str(e)}. Please ensure the file is publicly accessible on Google Drive and the sharing link is correct.")
 
 def load_model():
     """Load the ML model"""

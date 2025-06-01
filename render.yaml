@@ -12,6 +12,7 @@ services:
       - key: ALLOW_CREDENTIALS
         value: "true"
       # Make sure the model file is shared with "Anyone with the link" permission on Google Drive
+      # and the link is in the format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
       - key: MODEL_URL
         value: "https://drive.google.com/file/d/1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI/view?usp=sharing"
       - key: PYTHONUNBUFFERED
