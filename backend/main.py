@@ -9,6 +9,7 @@ import os
 from typing import Optional
 import logging
 import requests
+import re
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -38,15 +39,27 @@ def download_model():
             raise Exception("MODEL_URL environment variable not set")
         
         try:
-            # Convert Google Drive link to direct download link
-            file_id = model_url.split('/d/')[1].split('/view')[0]
-            direct_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+            # Extract file ID from Google Drive URL
+            file_id = re.search(r'/d/(.*?)/view', model_url)
+            if not file_id:
+                raise Exception("Invalid Google Drive URL")
+            file_id = file_id.group(1)
             
-            # Add a session to handle cookies
+            # Create a session to handle cookies
             session = requests.Session()
-            response = session.get(direct_url, stream=True)
             
-            # Handle large file download
+            # First request to get the confirmation token
+            url = f"https://drive.google.com/uc?id={file_id}&export=download"
+            response = session.get(url, stream=True)
+            
+            # Check if we need to handle the confirmation page
+            for key, value in response.cookies.items():
+                if key.startswith('download_warning'):
+                    url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
+                    response = session.get(url, stream=True)
+                    break
+            
+            # Download the file
             if response.status_code == 200:
                 with open(MODEL_PATH, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
@@ -55,6 +68,7 @@ def download_model():
                 logger.info("Model downloaded successfully")
             else:
                 raise Exception(f"Failed to download model: {response.status_code}")
+                
         except Exception as e:
             logger.error(f"Error downloading model: {str(e)}")
             raise
