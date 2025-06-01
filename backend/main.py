@@ -83,13 +83,38 @@ def download_model():
                         # If fuzzy fails, try direct download
                         gdown.download(url=url, output=output, quiet=False, fuzzy=False)
                     
-                    # If gdown fails, try requests with cookies
+                    # If gdown fails, try requests with proper headers
                     if not os.path.exists(MODEL_PATH):
                         logger.info("Trying alternative download method...")
                         session = requests.Session()
-                        response = session.get(url, stream=True)
+                        
+                        # Set up headers to mimic a browser
+                        headers = {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+                            'Accept-Language': 'en-US,en;q=0.5',
+                            'Connection': 'keep-alive',
+                            'Upgrade-Insecure-Requests': '1',
+                        }
+                        
+                        # First get the confirmation page
+                        response = session.get(url, headers=headers, stream=True)
                         response.raise_for_status()
                         
+                        # Check if we got an HTML page (confirmation page)
+                        if '<html' in response.text.lower():
+                            logger.info("Received confirmation page, proceeding with download...")
+                            # Extract the download URL from the confirmation page
+                            download_url = response.url
+                            if 'confirm=' in download_url:
+                                # Add the confirm parameter
+                                download_url += '&confirm=t'
+                            
+                            # Download the actual file
+                            response = session.get(download_url, headers=headers, stream=True)
+                            response.raise_for_status()
+                        
+                        # Save the file
                         with open(output, 'wb') as f:
                             for chunk in response.iter_content(chunk_size=8192):
                                 if chunk:
