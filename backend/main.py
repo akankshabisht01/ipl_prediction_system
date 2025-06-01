@@ -8,33 +8,55 @@ import pickle
 import os
 from typing import Optional
 import logging
+import requests
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'ipl_prediction_model.pkl')
-
-def load_model():
-    try:
-        with open(MODEL_PATH, 'rb') as f:
-            model = pickle.load(f)
-            logger.info("Model loaded successfully")
-            return model
-    except Exception as e:
-        logger.error(f"Error loading model: {e}")
-        raise
-
-app = FastAPI()
-
-# Enable CORS
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000").split(","),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Model path
+MODEL_PATH = "ipl_prediction_model.pkl"
+
+def download_model():
+    """Download the model file if it doesn't exist"""
+    if not os.path.exists(MODEL_PATH):
+        print("Downloading model file...")
+        model_url = os.getenv("MODEL_URL")
+        if not model_url:
+            raise Exception("MODEL_URL environment variable not set")
+        
+        # Convert Google Drive link to direct download link
+        file_id = model_url.split('/d/')[1].split('/view')[0]
+        direct_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+        
+        response = requests.get(direct_url)
+        if response.status_code == 200:
+            with open(MODEL_PATH, 'wb') as f:
+                f.write(response.content)
+            print("Model downloaded successfully")
+        else:
+            raise Exception(f"Failed to download model: {response.status_code}")
+
+def load_model():
+    """Load the ML model"""
+    try:
+        download_model()
+        with open(MODEL_PATH, 'rb') as f:
+            return pickle.load(f)
+    except Exception as e:
+        print(f"Error loading model: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to load ML model")
+
+app = FastAPI()
 
 # Load the model
 try:

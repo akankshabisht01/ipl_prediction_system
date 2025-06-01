@@ -10,4 +10,10 @@ services:
       - key: CORS_ORIGINS
         value: "http://localhost:3000,https://your-frontend-domain.com"
       - key: ALLOW_CREDENTIALS
-        value: "true" 
+        value: "true"
+      - key: MODEL_URL
+        value: "https://drive.google.com/file/d/1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI/view?usp=drive_link"  # Replace with your Google Drive link
+    disk:
+      name: model-storage
+      mountPath: /opt/render/project/src/backend
+      sizeGB: 1 

@@ -22,7 +22,7 @@ env/
 venv/
 .env
 .venv
-*.pkl
+*.pkl  # Ignore all .pkl files
 
 # Misc
 .DS_Store
