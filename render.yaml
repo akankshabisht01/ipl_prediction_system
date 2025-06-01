@@ -11,8 +11,9 @@ services:
         value: "http://localhost:3000,https://your-frontend-domain.com"
       - key: ALLOW_CREDENTIALS
         value: "true"
+      # Make sure the model file is shared with "Anyone with the link" permission on Google Drive
       - key: MODEL_URL
-        value: "https://drive.google.com/uc?id=1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI"
+        value: "https://drive.google.com/file/d/1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI/view?usp=sharing"
       - key: PYTHONUNBUFFERED
         value: "1"
     disk:

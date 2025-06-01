@@ -44,31 +44,50 @@ def download_model():
             # Extract file ID from Google Drive URL
             file_id = re.search(r'/d/(.*?)/view', model_url)
             if not file_id:
-                raise Exception("Invalid Google Drive URL")
+                # Try direct ID format
+                file_id = re.search(r'id=([^&]+)', model_url)
+                if not file_id:
+                    raise Exception("Invalid Google Drive URL format")
             file_id = file_id.group(1)
             
             # Use gdown to download the file with the correct URL format
             output = MODEL_PATH
             url = f'https://drive.google.com/uc?id={file_id}'
-            gdown.download(url=url, output=output, quiet=False)
             
-            # Verify the downloaded file
-            if os.path.exists(MODEL_PATH):
+            # Add retry logic
+            max_retries = 3
+            retry_delay = 5  # seconds
+            
+            for attempt in range(max_retries):
                 try:
-                    with open(MODEL_PATH, 'rb') as f:
-                        test_load = pickle.load(f)
-                    logger.info("Model downloaded and verified successfully")
-                except Exception as e:
-                    logger.error(f"Downloaded file is not a valid pickle file: {str(e)}")
+                    logger.info(f"Download attempt {attempt + 1} of {max_retries}")
+                    gdown.download(url=url, output=output, quiet=False, fuzzy=True)
+                    
                     if os.path.exists(MODEL_PATH):
-                        os.remove(MODEL_PATH)
-                    raise Exception("Downloaded file is not a valid pickle file")
-            else:
-                raise Exception("File download failed")
+                        try:
+                            with open(MODEL_PATH, 'rb') as f:
+                                test_load = pickle.load(f)
+                            logger.info("Model downloaded and verified successfully")
+                            return
+                        except Exception as e:
+                            logger.error(f"Downloaded file is not a valid pickle file: {str(e)}")
+                            if os.path.exists(MODEL_PATH):
+                                os.remove(MODEL_PATH)
+                            raise Exception("Downloaded file is not a valid pickle file")
+                    else:
+                        raise Exception("File download failed")
+                        
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Download attempt {attempt + 1} failed: {str(e)}")
+                        logger.info(f"Retrying in {retry_delay} seconds...")
+                        time.sleep(retry_delay)
+                    else:
+                        raise Exception(f"Failed to download model after {max_retries} attempts: {str(e)}")
                 
         except Exception as e:
             logger.error(f"Error downloading model: {str(e)}")
-            raise
+            raise Exception(f"Model download failed: {str(e)}. Please ensure the file is publicly accessible on Google Drive.")
 
 def load_model():
     """Load the ML model"""
