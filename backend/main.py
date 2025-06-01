@@ -11,6 +11,7 @@ import logging
 import requests
 import re
 import time
+import gdown
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -46,44 +47,23 @@ def download_model():
                 raise Exception("Invalid Google Drive URL")
             file_id = file_id.group(1)
             
-            # Create a session to handle cookies
-            session = requests.Session()
+            # Use gdown to download the file
+            output = MODEL_PATH
+            gdown.download(id=file_id, output=output, quiet=False)
             
-            # First request to get the confirmation token
-            url = f"https://drive.google.com/uc?id={file_id}&export=download"
-            response = session.get(url, stream=True)
-            
-            # Check if we need to handle the confirmation page
-            for key, value in response.cookies.items():
-                if key.startswith('download_warning'):
-                    url = f"https://drive.google.com/uc?export=download&confirm={value}&id={file_id}"
-                    response = session.get(url, stream=True)
-                    break
-            
-            # Download the file
-            if response.status_code == 200:
-                # Save the response content to a temporary file first
-                temp_path = f"{MODEL_PATH}.temp"
-                with open(temp_path, 'wb') as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk:
-                            f.write(chunk)
-                
-                # Verify the file is a valid pickle file
+            # Verify the downloaded file
+            if os.path.exists(MODEL_PATH):
                 try:
-                    with open(temp_path, 'rb') as f:
-                        # Try to load the pickle file
+                    with open(MODEL_PATH, 'rb') as f:
                         test_load = pickle.load(f)
-                    # If successful, rename the temp file to the actual model file
-                    os.rename(temp_path, MODEL_PATH)
                     logger.info("Model downloaded and verified successfully")
                 except Exception as e:
                     logger.error(f"Downloaded file is not a valid pickle file: {str(e)}")
-                    if os.path.exists(temp_path):
-                        os.remove(temp_path)
+                    if os.path.exists(MODEL_PATH):
+                        os.remove(MODEL_PATH)
                     raise Exception("Downloaded file is not a valid pickle file")
             else:
-                raise Exception(f"Failed to download model: {response.status_code}")
+                raise Exception("File download failed")
                 
         except Exception as e:
             logger.error(f"Error downloading model: {str(e)}")
