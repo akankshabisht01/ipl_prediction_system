@@ -13,8 +13,11 @@ import re
 import time
 import gdown
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
+# Set up logging with more detailed format
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
@@ -58,6 +61,8 @@ def download_model():
             if not file_id:
                 raise Exception("Could not extract file ID from URL")
             
+            logger.info(f"Extracted file ID: {file_id}")
+            
             # Use gdown to download the file with the correct URL format
             output = MODEL_PATH
             url = f'https://drive.google.com/uc?id={file_id}'
@@ -69,13 +74,26 @@ def download_model():
             for attempt in range(max_retries):
                 try:
                     logger.info(f"Download attempt {attempt + 1} of {max_retries}")
-                    # Try with fuzzy=True first
-                    gdown.download(url=url, output=output, quiet=False, fuzzy=True)
                     
-                    if not os.path.exists(MODEL_PATH):
-                        # If fuzzy fails, try without fuzzy
-                        logger.info("Fuzzy download failed, trying direct download...")
+                    # First try with gdown's direct download
+                    try:
+                        gdown.download(url=url, output=output, quiet=False, fuzzy=True)
+                    except Exception as e:
+                        logger.warning(f"gdown fuzzy download failed: {str(e)}")
+                        # If fuzzy fails, try direct download
                         gdown.download(url=url, output=output, quiet=False, fuzzy=False)
+                    
+                    # If gdown fails, try requests with cookies
+                    if not os.path.exists(MODEL_PATH):
+                        logger.info("Trying alternative download method...")
+                        session = requests.Session()
+                        response = session.get(url, stream=True)
+                        response.raise_for_status()
+                        
+                        with open(output, 'wb') as f:
+                            for chunk in response.iter_content(chunk_size=8192):
+                                if chunk:
+                                    f.write(chunk)
                     
                     if os.path.exists(MODEL_PATH):
                         try:

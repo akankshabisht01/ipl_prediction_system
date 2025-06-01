@@ -2,7 +2,9 @@ services:
   - type: web
     name: ipl-prediction-backend
     env: python
-    buildCommand: pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+    buildCommand: |
+      pip install --upgrade pip
+      pip install --no-cache-dir -r requirements.txt
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
@@ -11,8 +13,7 @@ services:
         value: "http://localhost:3000,https://your-frontend-domain.com"
       - key: ALLOW_CREDENTIALS
         value: "true"
-      # Make sure the model file is shared with "Anyone with the link" permission on Google Drive
-      # and the link is in the format: https://drive.google.com/file/d/FILE_ID/view?usp=sharing
+      # Make sure to update this URL after setting the correct sharing permissions
       - key: MODEL_URL
         value: "https://drive.google.com/file/d/1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI/view?usp=sharing"
       - key: PYTHONUNBUFFERED
