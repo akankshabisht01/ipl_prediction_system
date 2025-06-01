@@ -14,6 +14,9 @@ import requests
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Initialize FastAPI app
+app = FastAPI()
+
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
@@ -29,34 +32,44 @@ MODEL_PATH = "ipl_prediction_model.pkl"
 def download_model():
     """Download the model file if it doesn't exist"""
     if not os.path.exists(MODEL_PATH):
-        print("Downloading model file...")
+        logger.info("Downloading model file...")
         model_url = os.getenv("MODEL_URL")
         if not model_url:
             raise Exception("MODEL_URL environment variable not set")
         
-        # Convert Google Drive link to direct download link
-        file_id = model_url.split('/d/')[1].split('/view')[0]
-        direct_url = f"https://drive.google.com/uc?export=download&id={file_id}"
-        
-        response = requests.get(direct_url)
-        if response.status_code == 200:
-            with open(MODEL_PATH, 'wb') as f:
-                f.write(response.content)
-            print("Model downloaded successfully")
-        else:
-            raise Exception(f"Failed to download model: {response.status_code}")
+        try:
+            # Convert Google Drive link to direct download link
+            file_id = model_url.split('/d/')[1].split('/view')[0]
+            direct_url = f"https://drive.google.com/uc?export=download&id={file_id}"
+            
+            # Add a session to handle cookies
+            session = requests.Session()
+            response = session.get(direct_url, stream=True)
+            
+            # Handle large file download
+            if response.status_code == 200:
+                with open(MODEL_PATH, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+                logger.info("Model downloaded successfully")
+            else:
+                raise Exception(f"Failed to download model: {response.status_code}")
+        except Exception as e:
+            logger.error(f"Error downloading model: {str(e)}")
+            raise
 
 def load_model():
     """Load the ML model"""
     try:
         download_model()
         with open(MODEL_PATH, 'rb') as f:
-            return pickle.load(f)
+            model = pickle.load(f)
+            logger.info("Model loaded successfully")
+            return model
     except Exception as e:
-        print(f"Error loading model: {str(e)}")
+        logger.error(f"Error loading model: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to load ML model")
-
-app = FastAPI()
 
 # Load the model
 try:
