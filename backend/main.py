@@ -10,6 +10,7 @@ from typing import Optional
 import logging
 import requests
 import re
+import time
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -61,11 +62,26 @@ def download_model():
             
             # Download the file
             if response.status_code == 200:
-                with open(MODEL_PATH, 'wb') as f:
+                # Save the response content to a temporary file first
+                temp_path = f"{MODEL_PATH}.temp"
+                with open(temp_path, 'wb') as f:
                     for chunk in response.iter_content(chunk_size=8192):
                         if chunk:
                             f.write(chunk)
-                logger.info("Model downloaded successfully")
+                
+                # Verify the file is a valid pickle file
+                try:
+                    with open(temp_path, 'rb') as f:
+                        # Try to load the pickle file
+                        test_load = pickle.load(f)
+                    # If successful, rename the temp file to the actual model file
+                    os.rename(temp_path, MODEL_PATH)
+                    logger.info("Model downloaded and verified successfully")
+                except Exception as e:
+                    logger.error(f"Downloaded file is not a valid pickle file: {str(e)}")
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+                    raise Exception("Downloaded file is not a valid pickle file")
             else:
                 raise Exception(f"Failed to download model: {response.status_code}")
                 
