@@ -47,9 +47,10 @@ def download_model():
                 raise Exception("Invalid Google Drive URL")
             file_id = file_id.group(1)
             
-            # Use gdown to download the file
+            # Use gdown to download the file with the correct URL format
             output = MODEL_PATH
-            gdown.download(id=file_id, output=output, quiet=False)
+            url = f'https://drive.google.com/uc?id={file_id}'
+            gdown.download(url=url, output=output, quiet=False)
             
             # Verify the downloaded file
             if os.path.exists(MODEL_PATH):
