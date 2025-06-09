@@ -8,11 +8,8 @@ def download_model():
     # Generate the download URL
     url = f"https://drive.google.com/uc?id={file_id}"
     
-    # Create models directory if it doesn't exist
-    os.makedirs("backend/models", exist_ok=True)
-    
     # Download the file
-    output_path = "backend/models/model.pkl"
+    output_path = "model.pkl"
     try:
         gdown.download(url, output_path, quiet=False)
         print(f"Model downloaded successfully to {output_path}")
