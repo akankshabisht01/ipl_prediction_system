@@ -18,4 +18,6 @@ services:
     disk:
       name: model-storage
       mountPath: /opt/render/project/src/backend
-      sizeGB: 2 
+      sizeGB: 5
+    healthCheckPath: /health
+    autoDeploy: true 
