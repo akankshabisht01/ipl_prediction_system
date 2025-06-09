@@ -32,39 +32,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Model path
-MODEL_PATH = "ipl_prediction_model.pkl"
+# Model path - using absolute path
+MODEL_PATH = os.path.join(os.getcwd(), "model.pkl")
 
 def download_model():
     """Download the model file if it doesn't exist"""
     if not os.path.exists(MODEL_PATH):
         logger.info("Downloading model file...")
-        model_url = os.getenv("MODEL_URL")
-        if not model_url:
-            raise Exception("MODEL_URL environment variable not set")
-        
         try:
-            # Extract file ID from Google Drive URL
-            file_id = None
-            patterns = [
-                r'/d/(.*?)/view',  # Standard sharing URL
-                r'id=([^&]+)',     # Direct ID format
-                r'/file/d/(.*?)/'  # Alternative sharing URL
-            ]
-            
-            for pattern in patterns:
-                match = re.search(pattern, model_url)
-                if match:
-                    file_id = match.group(1)
-                    break
-            
-            if not file_id:
-                raise Exception("Could not extract file ID from URL")
-            
-            logger.info(f"Extracted file ID: {file_id}")
-            
-            # Create models directory if it doesn't exist
-            os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+            # File ID is hardcoded since we know it
+            file_id = "1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI"
+            logger.info(f"Using file ID: {file_id}")
             
             # Use direct download URL format
             url = f'https://drive.google.com/uc?export=download&id={file_id}'
