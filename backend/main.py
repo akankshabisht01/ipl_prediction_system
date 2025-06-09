@@ -10,6 +10,7 @@ from typing import Optional
 import logging
 import time
 import gdown
+import requests
 
 # Set up logging with more detailed format
 logging.basicConfig(
@@ -38,9 +39,9 @@ def download_model():
     if not os.path.exists(MODEL_PATH):
         logger.info("Downloading model file...")
         try:
-            # Use the full Google Drive URL
-            url = "https://drive.google.com/file/d/1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI/view?usp=sharing"
-            logger.info(f"Using URL: {url}")
+            # Use the direct download URL format
+            url = "https://drive.google.com/uc?export=download&id=1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI"
+            logger.info(f"Using direct download URL: {url}")
             
             # Add retry logic with exponential backoff
             max_retries = 5
@@ -50,11 +51,26 @@ def download_model():
                 try:
                     logger.info(f"Download attempt {attempt + 1} of {max_retries}")
                     
-                    # Use gdown with the full URL
-                    output = gdown.download(url, MODEL_PATH, quiet=False, fuzzy=True)
+                    # Use requests to download the file
+                    response = requests.get(url, stream=True)
+                    response.raise_for_status()
                     
-                    if output is None:
-                        raise Exception("Download failed")
+                    # Get the total file size
+                    total_size = int(response.headers.get('content-length', 0))
+                    logger.info(f"Total file size: {total_size} bytes")
+                    
+                    # Download the file with progress tracking
+                    with open(MODEL_PATH, 'wb') as f:
+                        downloaded = 0
+                        for chunk in response.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                                downloaded += len(chunk)
+                                # Log progress every 10%
+                                if total_size > 0:
+                                    progress = (downloaded / total_size) * 100
+                                    if int(progress) % 10 == 0:
+                                        logger.info(f"Download progress: {progress:.1f}%")
                     
                     # Verify the downloaded file
                     if os.path.exists(MODEL_PATH):
