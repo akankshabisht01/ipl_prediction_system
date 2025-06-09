@@ -12,6 +12,7 @@ import time
 import gdown
 import requests
 from datetime import datetime
+from azure.storage.blob import BlobServiceClient, BlobClient
 
 # Set up logging with more detailed format
 logging.basicConfig(
@@ -35,71 +36,65 @@ app.add_middleware(
 # Model path - using absolute path
 MODEL_PATH = os.path.join(os.getcwd(), "model.pkl")
 
+# Azure Storage configuration
+STORAGE_ACCOUNT_NAME = "model01"
+CONTAINER_NAME = "model"
+SAS_TOKEN = "?sp=r&st=2025-06-09T21:24:49Z&se=2027-01-01T05:24:49Z&spr=https&sv=2024-11-04&sr=c&sig=AvJqgx%2FOjwlS0unxKWyiAiI37%2FESVxWXrDwsHeENHsc%3D"
+
 def download_model():
     """Download the model file if it doesn't exist"""
     if not os.path.exists(MODEL_PATH):
         logger.info("Downloading model file from Azure Blob Storage...")
         try:
-            # Azure Blob Storage URL with SAS token
-            url = "https://model01.blob.core.windows.net/model?sp=r&st=2025-06-09T21:24:49Z&se=2027-01-01T05:24:49Z&spr=https&sv=2024-11-04&sr=c&sig=AvJqgx%2FOjwlS0unxKWyiAiI37%2FESVxWXrDwsHeENHsc%3D"
-            logger.info("Using Azure Blob Storage URL")
+            # Create the BlobServiceClient
+            blob_service_client = BlobServiceClient(
+                account_url=f"https://{STORAGE_ACCOUNT_NAME}.blob.core.windows.net",
+                credential=SAS_TOKEN
+            )
             
-            # Add retry logic with exponential backoff
-            max_retries = 5
-            base_delay = 2  # seconds
+            # Get the container client
+            container_client = blob_service_client.get_container_client(CONTAINER_NAME)
             
-            for attempt in range(max_retries):
-                try:
-                    logger.info(f"Download attempt {attempt + 1} of {max_retries}")
-                    
-                    # Use requests to download the file
-                    response = requests.get(url, stream=True)
-                    response.raise_for_status()
-                    
-                    # Get the total file size
-                    total_size = int(response.headers.get('content-length', 0))
-                    logger.info(f"Total file size: {total_size} bytes")
-                    
-                    # Download the file with progress tracking
-                    with open(MODEL_PATH, 'wb') as f:
-                        downloaded = 0
-                        for chunk in response.iter_content(chunk_size=8192):
-                            if chunk:
-                                f.write(chunk)
-                                downloaded += len(chunk)
-                                # Log progress every 10%
-                                if total_size > 0:
-                                    progress = (downloaded / total_size) * 100
-                                    if int(progress) % 10 == 0:
-                                        logger.info(f"Download progress: {progress:.1f}%")
-                    
-                    # Verify the downloaded file
-                    if os.path.exists(MODEL_PATH):
-                        try:
-                            with open(MODEL_PATH, 'rb') as f:
-                                test_load = pickle.load(f)
-                            logger.info("Model downloaded and verified successfully")
-                            return
-                        except Exception as e:
-                            logger.error(f"Downloaded file is not a valid pickle file: {str(e)}")
-                            if os.path.exists(MODEL_PATH):
-                                os.remove(MODEL_PATH)
-                            raise Exception("Downloaded file is not a valid pickle file")
-                    else:
-                        raise Exception("File download failed")
-                        
-                except Exception as e:
-                    if attempt < max_retries - 1:
-                        delay = base_delay * (2 ** attempt)  # Exponential backoff
-                        logger.warning(f"Download attempt {attempt + 1} failed: {str(e)}")
-                        logger.info(f"Retrying in {delay} seconds...")
-                        time.sleep(delay)
-                    else:
-                        raise Exception(f"Failed to download model after {max_retries} attempts: {str(e)}")
+            # List blobs in the container
+            blob_list = container_client.list_blobs()
+            model_blob = None
+            
+            # Find the .pkl file
+            for blob in blob_list:
+                if blob.name.endswith('.pkl'):
+                    model_blob = blob
+                    break
+            
+            if not model_blob:
+                raise Exception("No .pkl file found in the container")
+            
+            logger.info(f"Found model file: {model_blob.name}")
+            
+            # Get the blob client
+            blob_client = container_client.get_blob_client(model_blob.name)
+            
+            # Download the blob
+            logger.info("Starting download...")
+            with open(MODEL_PATH, "wb") as download_file:
+                download_data = blob_client.download_blob()
+                download_file.write(download_data.readall())
+            
+            logger.info("Model downloaded successfully")
+            
+            # Verify the downloaded file
+            try:
+                with open(MODEL_PATH, 'rb') as f:
+                    test_load = pickle.load(f)
+                logger.info("Model verified successfully")
+            except Exception as e:
+                logger.error(f"Downloaded file is not a valid pickle file: {str(e)}")
+                if os.path.exists(MODEL_PATH):
+                    os.remove(MODEL_PATH)
+                raise Exception("Downloaded file is not a valid pickle file")
                 
         except Exception as e:
             logger.error(f"Error downloading model: {str(e)}")
-            raise Exception(f"Model download failed: {str(e)}. Please ensure the Azure Blob Storage URL is correct and accessible.")
+            raise Exception(f"Model download failed: {str(e)}. Please ensure the Azure Blob Storage configuration is correct.")
 
 def load_model():
     """Load the ML model"""
