@@ -63,9 +63,11 @@ def download_model():
             
             logger.info(f"Extracted file ID: {file_id}")
             
-            # Use gdown to download the file with the correct URL format
-            output = MODEL_PATH
-            url = f'https://drive.google.com/uc?id={file_id}'
+            # Create models directory if it doesn't exist
+            os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+            
+            # Use direct download URL format
+            url = f'https://drive.google.com/uc?export=download&id={file_id}'
             
             # Add retry logic with exponential backoff
             max_retries = 5
@@ -75,51 +77,23 @@ def download_model():
                 try:
                     logger.info(f"Download attempt {attempt + 1} of {max_retries}")
                     
-                    # First try with gdown's direct download
-                    try:
-                        gdown.download(url=url, output=output, quiet=False, fuzzy=True)
-                    except Exception as e:
-                        logger.warning(f"gdown fuzzy download failed: {str(e)}")
-                        # If fuzzy fails, try direct download
-                        gdown.download(url=url, output=output, quiet=False, fuzzy=False)
+                    # Use requests to download the file
+                    session = requests.Session()
+                    response = session.get(url, stream=True)
                     
-                    # If gdown fails, try requests with proper headers
-                    if not os.path.exists(MODEL_PATH):
-                        logger.info("Trying alternative download method...")
-                        session = requests.Session()
-                        
-                        # Set up headers to mimic a browser
-                        headers = {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                            'Accept-Language': 'en-US,en;q=0.5',
-                            'Connection': 'keep-alive',
-                            'Upgrade-Insecure-Requests': '1',
-                        }
-                        
-                        # First get the confirmation page
-                        response = session.get(url, headers=headers, stream=True)
-                        response.raise_for_status()
-                        
-                        # Check if we got an HTML page (confirmation page)
-                        if '<html' in response.text.lower():
-                            logger.info("Received confirmation page, proceeding with download...")
-                            # Extract the download URL from the confirmation page
-                            download_url = response.url
-                            if 'confirm=' in download_url:
-                                # Add the confirm parameter
-                                download_url += '&confirm=t'
-                            
-                            # Download the actual file
-                            response = session.get(download_url, headers=headers, stream=True)
-                            response.raise_for_status()
-                        
-                        # Save the file
-                        with open(output, 'wb') as f:
-                            for chunk in response.iter_content(chunk_size=8192):
-                                if chunk:
-                                    f.write(chunk)
+                    # Check if we got a confirmation page
+                    if 'confirm=' not in response.url:
+                        # Add confirmation parameter
+                        url = f'{url}&confirm=t'
+                        response = session.get(url, stream=True)
                     
+                    # Save the file
+                    with open(MODEL_PATH, 'wb') as f:
+                        for chunk in response.iter_content(chunk_size=8192):
+                            if chunk:
+                                f.write(chunk)
+                    
+                    # Verify the downloaded file
                     if os.path.exists(MODEL_PATH):
                         try:
                             with open(MODEL_PATH, 'rb') as f:
