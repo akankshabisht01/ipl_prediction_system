@@ -38,11 +38,11 @@ MODEL_PATH = os.path.join(os.getcwd(), "model.pkl")
 def download_model():
     """Download the model file if it doesn't exist"""
     if not os.path.exists(MODEL_PATH):
-        logger.info("Downloading model file...")
+        logger.info("Downloading model file from Azure Blob Storage...")
         try:
-            # Use the direct download URL format
-            url = "https://drive.google.com/uc?export=download&id=1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI"
-            logger.info(f"Using direct download URL: {url}")
+            # Azure Blob Storage URL with SAS token
+            url = "https://model01.blob.core.windows.net/model?sp=r&st=2025-06-09T21:24:49Z&se=2027-01-01T05:24:49Z&spr=https&sv=2024-11-04&sr=c&sig=AvJqgx%2FOjwlS0unxKWyiAiI37%2FESVxWXrDwsHeENHsc%3D"
+            logger.info("Using Azure Blob Storage URL")
             
             # Add retry logic with exponential backoff
             max_retries = 5
@@ -99,7 +99,7 @@ def download_model():
                 
         except Exception as e:
             logger.error(f"Error downloading model: {str(e)}")
-            raise Exception(f"Model download failed: {str(e)}. Please ensure the file is publicly accessible on Google Drive and the sharing link is correct.")
+            raise Exception(f"Model download failed: {str(e)}. Please ensure the Azure Blob Storage URL is correct and accessible.")
 
 def load_model():
     """Load the ML model"""
