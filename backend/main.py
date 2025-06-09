@@ -11,6 +11,7 @@ import logging
 import time
 import gdown
 import requests
+from datetime import datetime
 
 # Set up logging with more detailed format
 logging.basicConfig(
@@ -192,6 +193,11 @@ async def predict(input_data: PredictionInput):
 @app.get("/")
 async def root():
     return {"message": "IPL Prediction API is running"}
+
+# Add health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=8000)
