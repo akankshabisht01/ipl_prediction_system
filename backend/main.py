@@ -38,12 +38,9 @@ def download_model():
     if not os.path.exists(MODEL_PATH):
         logger.info("Downloading model file...")
         try:
-            # File ID is hardcoded since we know it
-            file_id = "1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI"
-            logger.info(f"Using file ID: {file_id}")
-            
-            # Use gdown to download the file
-            url = f'https://drive.google.com/uc?id={file_id}'
+            # Use the full Google Drive URL
+            url = "https://drive.google.com/file/d/1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI/view?usp=sharing"
+            logger.info(f"Using URL: {url}")
             
             # Add retry logic with exponential backoff
             max_retries = 5
@@ -53,8 +50,8 @@ def download_model():
                 try:
                     logger.info(f"Download attempt {attempt + 1} of {max_retries}")
                     
-                    # Use gdown to download the file
-                    output = gdown.download(url, MODEL_PATH, quiet=False)
+                    # Use gdown with the full URL
+                    output = gdown.download(url, MODEL_PATH, quiet=False, fuzzy=True)
                     
                     if output is None:
                         raise Exception("Download failed")
