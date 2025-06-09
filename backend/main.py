@@ -8,8 +8,6 @@ import pickle
 import os
 from typing import Optional
 import logging
-import requests
-import re
 import time
 import gdown
 
@@ -44,8 +42,8 @@ def download_model():
             file_id = "1kIs-Dk3R2QnsL082LboyO_WnrUpAiMPI"
             logger.info(f"Using file ID: {file_id}")
             
-            # Use direct download URL format
-            url = f'https://drive.google.com/uc?export=download&id={file_id}'
+            # Use gdown to download the file
+            url = f'https://drive.google.com/uc?id={file_id}'
             
             # Add retry logic with exponential backoff
             max_retries = 5
@@ -55,21 +53,11 @@ def download_model():
                 try:
                     logger.info(f"Download attempt {attempt + 1} of {max_retries}")
                     
-                    # Use requests to download the file
-                    session = requests.Session()
-                    response = session.get(url, stream=True)
+                    # Use gdown to download the file
+                    output = gdown.download(url, MODEL_PATH, quiet=False)
                     
-                    # Check if we got a confirmation page
-                    if 'confirm=' not in response.url:
-                        # Add confirmation parameter
-                        url = f'{url}&confirm=t'
-                        response = session.get(url, stream=True)
-                    
-                    # Save the file
-                    with open(MODEL_PATH, 'wb') as f:
-                        for chunk in response.iter_content(chunk_size=8192):
-                            if chunk:
-                                f.write(chunk)
+                    if output is None:
+                        raise Exception("Download failed")
                     
                     # Verify the downloaded file
                     if os.path.exists(MODEL_PATH):
