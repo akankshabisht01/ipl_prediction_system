@@ -7,10 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 import pandas as pd
-from azure.storage.blob import BlobServiceClient
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
+from azure.storage.blob import BlobServiceClient
 
 # Set up logging
 logging.basicConfig(
