@@ -46,11 +46,13 @@ model = None
 class MatchInput(BaseModel):
     batting_team: str
     bowling_team: str
-    city: str
-    current_score: int
+    venue: str
+    runs_left: int
     balls_left: int
     wickets_left: int
-    last_five: List[int]
+    total_runs_x: int
+    crr: float
+    rrr: float
 
 def download_model():
     """Download the model file if it doesn't exist"""
@@ -121,18 +123,24 @@ async def predict_score(match: MatchInput):
         
         # Create input array for prediction
         input_data = np.array([[
-            match.current_score,
+            match.runs_left,
             match.balls_left,
             match.wickets_left,
-            *match.last_five,
-            # Add team and city encoding here if needed
+            match.total_runs_x,
+            match.crr,
+            match.rrr
         ]])
         
         # Make prediction
         prediction = model.predict(input_data)
         
+        # Calculate win probabilities
+        batting_win = float(prediction[0])
+        bowling_win = 1 - batting_win
+        
         return {
-            "predicted_score": int(prediction[0]),
+            "batting_win": batting_win,
+            "bowling_win": bowling_win,
             "input_data": match.dict()
         }
     except Exception as e:
