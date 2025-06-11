@@ -47,6 +47,19 @@ MODEL_PATH = "model.pkl"
 model = None
 preprocessor = None
 
+# Sample data for fitting the preprocessor
+SAMPLE_DATA = {
+    'batting_team': ['Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore'],
+    'bowling_team': ['Chennai Super Kings', 'Mumbai Indians', 'Kolkata Knight Riders'],
+    'venue': ['Wankhede Stadium, Mumbai', 'M. A. Chidambaram Stadium, Chennai', 'Eden Gardens, Kolkata'],
+    'runs_left': [50, 75, 100],
+    'balls_left': [30, 45, 60],
+    'wickets_left': [5, 6, 7],
+    'total_runs_x': [150, 180, 200],
+    'crr': [8.5, 9.0, 7.5],
+    'rrr': [10.0, 12.0, 8.0]
+}
+
 class MatchInput(BaseModel):
     batting_team: str
     bowling_team: str
@@ -58,8 +71,8 @@ class MatchInput(BaseModel):
     crr: float
     rrr: float
 
-def create_preprocessor():
-    """Create the preprocessor for feature transformation"""
+def create_and_fit_preprocessor():
+    """Create and fit the preprocessor with sample data"""
     # Define numerical and categorical features
     numerical_features = ['runs_left', 'balls_left', 'wickets_left', 'total_runs_x', 'crr', 'rrr']
     categorical_features = ['batting_team', 'bowling_team', 'venue']
@@ -70,6 +83,10 @@ def create_preprocessor():
             ('num', StandardScaler(), numerical_features),
             ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
         ])
+    
+    # Fit preprocessor with sample data
+    sample_df = pd.DataFrame(SAMPLE_DATA)
+    preprocessor.fit(sample_df)
     
     return preprocessor
 
@@ -116,7 +133,7 @@ def load_model():
             download_model()
         with open(MODEL_PATH, 'rb') as f:
             model = pickle.load(f)
-        preprocessor = create_preprocessor()
+        preprocessor = create_and_fit_preprocessor()
         logger.info("Model and preprocessor loaded successfully")
     except Exception as e:
         logger.error(f"Error loading model: {str(e)}")
