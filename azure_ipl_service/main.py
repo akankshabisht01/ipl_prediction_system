@@ -49,9 +49,16 @@ preprocessor = None
 
 # Sample data for fitting the preprocessor
 SAMPLE_DATA = {
-    'batting_team': ['Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore'],
-    'bowling_team': ['Chennai Super Kings', 'Mumbai Indians', 'Kolkata Knight Riders'],
-    'city': ['Mumbai', 'Chennai', 'Bengaluru'],
+    'batting_team': ['Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore', 
+                    'Kolkata Knight Riders', 'Delhi Capitals', 'Punjab Kings', 
+                    'Rajasthan Royals', 'Sunrisers Hyderabad', 'Gujarat Titans', 
+                    'Lucknow Super Giants'],
+    'bowling_team': ['Chennai Super Kings', 'Mumbai Indians', 'Kolkata Knight Riders',
+                    'Royal Challengers Bangalore', 'Delhi Capitals', 'Punjab Kings',
+                    'Rajasthan Royals', 'Sunrisers Hyderabad', 'Gujarat Titans',
+                    'Lucknow Super Giants'],
+    'city': ['Mumbai', 'Chennai', 'Bengaluru', 'Kolkata', 'Delhi', 'Punjab',
+            'Jaipur', 'Hyderabad', 'Gujarat', 'Lucknow'],
     'runs_left': [50, 75, 100],
     'balls_left': [30, 45, 60],
     'wickets': [5, 6, 7],
@@ -80,7 +87,7 @@ def create_and_fit_preprocessor():
     # Create preprocessor
     preprocessor = ColumnTransformer(
         transformers=[
-            ('cat', OneHotEncoder(handle_unknown='ignore', drop='first'), categorical_features),
+            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features),
             ('num', StandardScaler(), numerical_features)
         ])
     
@@ -188,8 +195,14 @@ async def predict_score(match: MatchInput):
         # Create DataFrame for preprocessing
         input_df = pd.DataFrame([input_data])
         
+        # Log the input data for debugging
+        logger.info(f"Input data: {input_data}")
+        
         # Transform features
         transformed_features = preprocessor.transform(input_df)
+        
+        # Log the shape of transformed features
+        logger.info(f"Transformed features shape: {transformed_features.shape}")
         
         # Make prediction
         prediction = model.predict(transformed_features)
