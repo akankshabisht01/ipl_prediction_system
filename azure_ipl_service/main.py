@@ -74,7 +74,7 @@ class MatchInput(BaseModel):
     runs_left: int
     balls_left: int
     wickets_left: int
-    total_runs_x: int
+    target_runs: int  # Changed from total_runs_x
     crr: float
     rrr: float
 
@@ -187,7 +187,7 @@ async def predict_score(match: MatchInput):
             'runs_left': match.runs_left,
             'balls_left': match.balls_left,
             'wickets': match.wickets_left,
-            'total_runs_x': match.total_runs_x,
+            'total_runs_x': match.target_runs,  # Map target_runs to total_runs_x
             'crr': match.crr,
             'rrr': match.rrr
         }
