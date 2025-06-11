@@ -8,6 +8,9 @@ from pydantic import BaseModel
 from typing import List
 import pandas as pd
 from azure.storage.blob import BlobServiceClient
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
 
 # Set up logging
 logging.basicConfig(
@@ -40,8 +43,9 @@ AZURE_CONTAINER_NAME = os.getenv("AZURE_CONTAINER_NAME", "model")
 MODEL_BLOB_NAME = os.getenv("MODEL_BLOB_NAME", "ipl_prediction_model.pkl")
 MODEL_PATH = "model.pkl"
 
-# Initialize model variable
+# Initialize model and preprocessor variables
 model = None
+preprocessor = None
 
 class MatchInput(BaseModel):
     batting_team: str
@@ -53,6 +57,21 @@ class MatchInput(BaseModel):
     total_runs_x: int
     crr: float
     rrr: float
+
+def create_preprocessor():
+    """Create the preprocessor for feature transformation"""
+    # Define numerical and categorical features
+    numerical_features = ['runs_left', 'balls_left', 'wickets_left', 'total_runs_x', 'crr', 'rrr']
+    categorical_features = ['batting_team', 'bowling_team', 'venue']
+    
+    # Create preprocessor
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ('num', StandardScaler(), numerical_features),
+            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+        ])
+    
+    return preprocessor
 
 def download_model():
     """Download the model file if it doesn't exist"""
@@ -91,13 +110,14 @@ def download_model():
 
 def load_model():
     """Load the model from file"""
-    global model
+    global model, preprocessor
     try:
         if not os.path.exists(MODEL_PATH):
             download_model()
         with open(MODEL_PATH, 'rb') as f:
             model = pickle.load(f)
-        logger.info("Model loaded successfully")
+        preprocessor = create_preprocessor()
+        logger.info("Model and preprocessor loaded successfully")
     except Exception as e:
         logger.error(f"Error loading model: {str(e)}")
         raise Exception(f"Model loading failed: {str(e)}")
@@ -118,21 +138,17 @@ async def root():
 @app.post("/predict")
 async def predict_score(match: MatchInput):
     try:
-        if model is None:
+        if model is None or preprocessor is None:
             load_model()
         
-        # Create input array for prediction
-        input_data = np.array([[
-            match.runs_left,
-            match.balls_left,
-            match.wickets_left,
-            match.total_runs_x,
-            match.crr,
-            match.rrr
-        ]])
+        # Create DataFrame for preprocessing
+        input_df = pd.DataFrame([match.dict()])
+        
+        # Transform features
+        transformed_features = preprocessor.transform(input_df)
         
         # Make prediction
-        prediction = model.predict(input_data)
+        prediction = model.predict(transformed_features)
         
         # Calculate win probabilities
         batting_win = float(prediction[0])
