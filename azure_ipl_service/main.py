@@ -51,10 +51,10 @@ preprocessor = None
 SAMPLE_DATA = {
     'batting_team': ['Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore'],
     'bowling_team': ['Chennai Super Kings', 'Mumbai Indians', 'Kolkata Knight Riders'],
-    'venue': ['Wankhede Stadium, Mumbai', 'M. A. Chidambaram Stadium, Chennai', 'Eden Gardens, Kolkata'],
+    'city': ['Mumbai', 'Chennai', 'Bengaluru'],
     'runs_left': [50, 75, 100],
     'balls_left': [30, 45, 60],
-    'wickets_left': [5, 6, 7],
+    'wickets': [5, 6, 7],
     'total_runs_x': [150, 180, 200],
     'crr': [8.5, 9.0, 7.5],
     'rrr': [10.0, 12.0, 8.0]
@@ -74,14 +74,14 @@ class MatchInput(BaseModel):
 def create_and_fit_preprocessor():
     """Create and fit the preprocessor with sample data"""
     # Define numerical and categorical features
-    numerical_features = ['runs_left', 'balls_left', 'wickets_left', 'total_runs_x', 'crr', 'rrr']
-    categorical_features = ['batting_team', 'bowling_team', 'venue']
+    numerical_features = ['runs_left', 'balls_left', 'wickets', 'total_runs_x', 'crr', 'rrr']
+    categorical_features = ['batting_team', 'bowling_team', 'city']
     
     # Create preprocessor
     preprocessor = ColumnTransformer(
         transformers=[
-            ('num', StandardScaler(), numerical_features),
-            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+            ('cat', OneHotEncoder(handle_unknown='ignore', drop='first'), categorical_features),
+            ('num', StandardScaler(), numerical_features)
         ])
     
     # Fit preprocessor with sample data
@@ -158,8 +158,35 @@ async def predict_score(match: MatchInput):
         if model is None or preprocessor is None:
             load_model()
         
+        # Convert venue to city
+        venue_to_city = {
+            'Wankhede Stadium, Mumbai': 'Mumbai',
+            'M. A. Chidambaram Stadium, Chennai': 'Chennai',
+            'Eden Gardens, Kolkata': 'Kolkata',
+            'Arun Jaitley Stadium, Delhi': 'Delhi',
+            'M. Chinnaswamy Stadium, Bengaluru': 'Bengaluru',
+            'Punjab Cricket Association IS Bindra Stadium, Mohali': 'Punjab',
+            'Sawai Mansingh Stadium, Jaipur': 'Jaipur',
+            'Rajiv Gandhi International Cricket Stadium, Hyderabad': 'Hyderabad',
+            'Sardar Patel Stadium (Narendra Modi Stadium), Ahmedabad': 'Gujarat',
+            'Bharat Ratna Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow': 'Lucknow'
+        }
+        
+        # Create input data
+        input_data = {
+            'batting_team': match.batting_team,
+            'bowling_team': match.bowling_team,
+            'city': venue_to_city.get(match.venue, 'Mumbai'),  # Default to Mumbai if venue not found
+            'runs_left': match.runs_left,
+            'balls_left': match.balls_left,
+            'wickets': match.wickets_left,
+            'total_runs_x': match.total_runs_x,
+            'crr': match.crr,
+            'rrr': match.rrr
+        }
+        
         # Create DataFrame for preprocessing
-        input_df = pd.DataFrame([match.dict()])
+        input_df = pd.DataFrame([input_data])
         
         # Transform features
         transformed_features = preprocessor.transform(input_df)
