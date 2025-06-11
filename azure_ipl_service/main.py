@@ -18,13 +18,17 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="IPL Match Prediction API")
 
-# Add CORS middleware
+# Add CORS middleware with more specific configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://ipl-prediction-system-two.vercel.app", "http://localhost:3000"],
+    allow_origins=[
+        "https://ipl-prediction-system-two.vercel.app",
+        "http://localhost:3000"
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Azure Storage settings
