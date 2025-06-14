@@ -2,8 +2,11 @@ import os
 import pickle
 import logging
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exception_handlers import RequestValidationError
+from fastapi.exceptions import RequestValidationError as FastAPIRequestValidationError
 from pydantic import BaseModel
 import pandas as pd
 from azure.storage.blob import BlobServiceClient
@@ -67,6 +70,14 @@ def load_model():
     except Exception as e:
         logger.error(f"Error loading model: {str(e)}")
         raise Exception(f"Model loading failed: {str(e)}")
+
+@app.exception_handler(FastAPIRequestValidationError)
+async def validation_exception_handler(request: Request, exc: FastAPIRequestValidationError):
+    logger.error(f"422 Validation Error: {exc.errors()} | Body: {await request.body()}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "body": (await request.body()).decode('utf-8')}
+    )
 
 @app.on_event("startup")
 async def startup_event():
