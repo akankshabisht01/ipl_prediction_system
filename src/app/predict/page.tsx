@@ -90,7 +90,7 @@ export default function PredictPage() {
       <h1 className="text-3xl font-bold text-center text-ipl-blue dark:text-ipl-orange mb-8">IPL Match Prediction</h1>
       <PredictionForm onSubmit={handleSubmit} />
       {loading && <div className="text-center mt-6 text-lg text-gray-700 dark:text-gray-200">Predicting...</div>}
-      {error && <div className="text-center mt-6 text-lg text-red-600">{error}</div>}
+      {!result && error && <div className="text-center mt-6 text-lg text-red-600">{error}</div>}
       {rawResponse && (
         <div className="text-center mt-2 text-xs text-gray-500 break-all">Raw backend response: {rawResponse}</div>
       )}
