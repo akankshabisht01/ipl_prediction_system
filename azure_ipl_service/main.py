@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from azure.storage.blob import BlobServiceClient
@@ -47,24 +47,27 @@ MODEL_PATH = "model.pkl"
 model = None
 preprocessor = None
 
-# Sample data for fitting the preprocessor
-SAMPLE_DATA = {
-    'batting_team': ['Mumbai Indians', 'Chennai Super Kings', 'Royal Challengers Bangalore', 
-                    'Kolkata Knight Riders', 'Delhi Capitals', 'Punjab Kings', 
-                    'Rajasthan Royals', 'Sunrisers Hyderabad', 'Gujarat Titans', 
-                    'Lucknow Super Giants'],
-    'bowling_team': ['Chennai Super Kings', 'Mumbai Indians', 'Kolkata Knight Riders',
-                    'Royal Challengers Bangalore', 'Delhi Capitals', 'Punjab Kings',
-                    'Rajasthan Royals', 'Sunrisers Hyderabad', 'Gujarat Titans',
-                    'Lucknow Super Giants'],
-    'city': ['Mumbai', 'Chennai', 'Bengaluru', 'Kolkata', 'Delhi', 'Punjab',
-            'Jaipur', 'Hyderabad', 'Gujarat', 'Lucknow'],
-    'runs_left': [50, 75, 100],
-    'balls_left': [30, 45, 60],
-    'wickets': [5, 6, 7],
-    'total_runs_x': [150, 180, 200],
-    'crr': [8.5, 9.0, 7.5],
-    'rrr': [10.0, 12.0, 8.0]
+# Teams and cities from training data
+TEAMS = [
+    'Sunrisers Hyderabad', 'Mumbai Indians', 'Royal Challengers Bangalore', 'Kolkata Knight Riders',
+    'Punjab Kings', 'Chennai Super Kings', 'Rajasthan Royals', 'Delhi Capitals',
+    'Lucknow Super Giants', 'Gujarat Titans'
+]
+
+CITIES = ['Mumbai', 'Chennai', 'Bengaluru', 'Kolkata', 'Delhi', 'Punjab',
+         'Jaipur', 'Hyderabad', 'Gujarat', 'Lucknow']
+
+# Create sample data with all arrays having the same length (10)
+PREPROCESSOR_INIT_DATA = {
+    'batting_team': TEAMS,  # 10 teams
+    'bowling_team': TEAMS,  # 10 teams
+    'city': CITIES,  # 10 cities
+    'runs_left': [50, 75, 100, 80, 60, 90, 70, 85, 95, 65],  # 10 values
+    'balls_left': [30, 45, 60, 40, 35, 50, 25, 55, 20, 15],  # 10 values
+    'wickets': [5, 6, 7, 4, 8, 3, 9, 2, 1, 0],  # 10 values
+    'total_runs_x': [150, 180, 200, 170, 160, 190, 140, 210, 130, 220],  # 10 values
+    'crr': [8.5, 9.0, 7.5, 8.0, 9.5, 7.0, 10.0, 6.5, 10.5, 6.0],  # 10 values
+    'rrr': [10.0, 12.0, 8.0, 11.0, 13.0, 7.0, 14.0, 6.0, 15.0, 5.0]  # 10 values
 }
 
 class MatchInput(BaseModel):
@@ -74,26 +77,30 @@ class MatchInput(BaseModel):
     runs_left: int
     balls_left: int
     wickets_left: int
-    target_runs: int  # Changed from total_runs_x
+    target_runs: int
     crr: float
     rrr: float
 
 def create_and_fit_preprocessor():
-    """Create and fit the preprocessor with sample data"""
-    # Define numerical and categorical features
-    numerical_features = ['runs_left', 'balls_left', 'wickets', 'total_runs_x', 'crr', 'rrr']
+    """Create and fit the preprocessor with initialization data"""
+    # Define categorical features
     categorical_features = ['batting_team', 'bowling_team', 'city']
     
-    # Create preprocessor
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features),
-            ('num', StandardScaler(), numerical_features)
-        ])
+    # Create OneHotEncoder with categories from training
+    ohe = OneHotEncoder(handle_unknown='ignore')
+    ohe.fit_transform(pd.DataFrame(PREPROCESSOR_INIT_DATA)[categorical_features])
+    categories = ohe.categories_
     
-    # Fit preprocessor with sample data
-    sample_df = pd.DataFrame(SAMPLE_DATA)
-    preprocessor.fit(sample_df)
+    # Create preprocessor matching training pipeline
+    preprocessor = ColumnTransformer([
+        ('trf', OneHotEncoder(categories=categories, sparse=False, drop='first', handle_unknown='ignore'), 
+         categorical_features)
+    ], remainder='passthrough')
+    
+    # Fit preprocessor with initialization data
+    init_df = pd.DataFrame(PREPROCESSOR_INIT_DATA)
+    preprocessor.fit(init_df)
+    logger.info("Preprocessor initialized successfully")
     
     return preprocessor
 
