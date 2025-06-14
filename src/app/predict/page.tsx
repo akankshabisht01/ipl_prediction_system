@@ -47,8 +47,8 @@ export default function PredictPage() {
       const hasBowling = 'bowling_team_win_probability' in data;
       const battingVal = data.batting_team_win_probability;
       const bowlingVal = data.bowling_team_win_probability;
-      const battingNum = typeof battingVal === 'number' && !isNaN(battingVal);
-      const bowlingNum = typeof bowlingVal === 'number' && !isNaN(bowlingVal);
+      const battingNum = !isNaN(Number(battingVal));
+      const bowlingNum = !isNaN(Number(bowlingVal));
 
       if (!hasBatting || !hasBowling || !battingNum || !bowlingNum) {
         setError(
