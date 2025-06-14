@@ -38,13 +38,13 @@ export default function PredictPage() {
       console.log('Response data:', data); // Debug log
       console.log('Response keys:', Object.keys(data));
       
-      let showWarning = false;
       if (
         !('batting_team_win_probability' in data) ||
         !('bowling_team_win_probability' in data)
       ) {
-        setError('Warning: Keys missing in response. Raw response: ' + JSON.stringify(data));
-        showWarning = true;
+        setError('Invalid prediction response. Raw response: ' + JSON.stringify(data));
+        setResult(null);
+        return;
       }
 
       setResult({
@@ -53,12 +53,11 @@ export default function PredictPage() {
         battingWin: Number(data.batting_team_win_probability),
         bowlingWin: Number(data.bowling_team_win_probability),
       });
-      if (showWarning) {
-        setError('Warning: Keys missing in response, but displaying result. Raw response: ' + JSON.stringify(data));
-      }
+      setError(''); // Clear any previous error
     } catch (err: any) {
       console.error('Prediction error:', err); // Debug log
       setError(typeof err === 'string' ? err : (err.message || JSON.stringify(err) || 'Something went wrong'));
+      setResult(null);
     } finally {
       setLoading(false);
     }
