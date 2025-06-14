@@ -27,19 +27,23 @@ export default function PredictPage() {
         body: JSON.stringify(formData),
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Prediction failed');
+      const rawText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        console.error('Failed to parse response as JSON:', rawText);
+        throw new Error('Backend did not return valid JSON');
       }
-      
-      const data = await response.json();
       console.log('Response data:', data); // Debug log
       
       if (
         typeof data.batting_team_win_probability !== 'number' ||
         typeof data.bowling_team_win_probability !== 'number'
       ) {
-        throw new Error('Invalid prediction response');
+        console.error('Invalid prediction response structure:', data);
+        setError('Invalid prediction response. Raw response: ' + JSON.stringify(data));
+        return;
       }
 
       setResult({
