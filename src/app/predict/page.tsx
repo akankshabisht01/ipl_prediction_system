@@ -13,11 +13,13 @@ export default function PredictPage() {
   }>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rawResponse, setRawResponse] = useState('');
 
   const handleSubmit = async (formData: any) => {
     setLoading(true);
     setError('');
     setResult(null);
+    setRawResponse('');
     try {
       // Debug log: print outgoing payload
       console.log('Sending to backend:', formData);
@@ -28,12 +30,15 @@ export default function PredictPage() {
       });
       
       const rawText = await response.text();
+      setRawResponse(rawText); // Always show the raw response
       let data;
       try {
         data = JSON.parse(rawText);
       } catch (e) {
         console.error('Failed to parse response as JSON:', rawText);
-        throw new Error('Backend did not return valid JSON');
+        setError('Backend did not return valid JSON: ' + rawText);
+        setResult(null);
+        return;
       }
       console.log('Response data:', data); // Debug log
       console.log('Response keys:', Object.keys(data));
@@ -69,6 +74,9 @@ export default function PredictPage() {
       <PredictionForm onSubmit={handleSubmit} />
       {loading && <div className="text-center mt-6 text-lg text-gray-700 dark:text-gray-200">Predicting...</div>}
       {error && <div className="text-center mt-6 text-lg text-red-600">{error}</div>}
+      {rawResponse && (
+        <div className="text-center mt-2 text-xs text-gray-500 break-all">Raw backend response: {rawResponse}</div>
+      )}
       {result && (
         <ResultDisplay
           battingTeam={result.battingTeam}
