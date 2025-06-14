@@ -59,16 +59,23 @@ export default function PredictPage() {
           'Raw response: ' + rawText
         );
         setResult(null);
+        console.log('Set error (invalid response):', 'Invalid prediction response');
         return;
       }
 
+      setError(''); // Clear any previous error before setting result
       setResult({
         battingTeam: formData.batting_team,
         bowlingTeam: formData.bowling_team,
         battingWin: Number(battingVal),
         bowlingWin: Number(bowlingVal),
       });
-      setError(''); // Clear any previous error
+      console.log('Set result:', {
+        battingTeam: formData.batting_team,
+        bowlingTeam: formData.bowling_team,
+        battingWin: Number(battingVal),
+        bowlingWin: Number(bowlingVal),
+      });
     } catch (err: any) {
       console.error('Prediction error:', err); // Debug log
       setError(typeof err === 'string' ? err : (err.message || JSON.stringify(err) || 'Something went wrong'));
