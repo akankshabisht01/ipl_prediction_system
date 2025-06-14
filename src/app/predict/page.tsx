@@ -105,22 +105,24 @@ export default function PredictPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
-      <h1 className="text-3xl font-bold text-center text-ipl-blue dark:text-ipl-orange mb-8">IPL Match Prediction</h1>
-      <PredictionForm onSubmit={handleSubmit} />
-      {loading && <div className="text-center mt-6 text-lg text-gray-700 dark:text-gray-200">Predicting...</div>}
-      {error && <div className="text-center mt-6 text-lg text-red-600 whitespace-pre-line">{error}</div>}
-      {rawResponse && (
-        <div className="text-center mt-2 text-xs text-gray-500 break-all">Raw backend response: {rawResponse}</div>
-      )}
-      {result && (
-        <ResultDisplay
-          battingTeam={result.battingTeam}
-          bowlingTeam={result.bowlingTeam}
-          battingWin={result.battingWin}
-          bowlingWin={result.bowlingWin}
-        />
-      )}
+    <div className="min-h-screen flex items-center justify-center bg-[#151e2e] py-12">
+      <div className="w-full max-w-4xl">
+        <h1 className="text-3xl font-bold text-center text-white mb-8 drop-shadow">Prediction Result</h1>
+        <PredictionForm onSubmit={handleSubmit} />
+        {loading && <div className="text-center mt-6 text-lg text-gray-200">Predicting...</div>}
+        {error && <div className="text-center mt-6 text-lg text-red-400 whitespace-pre-line">{error}</div>}
+        {rawResponse && (
+          <div className="text-center mt-2 text-xs text-gray-500 break-all">Raw backend response: {rawResponse}</div>
+        )}
+        {result && (
+          <ResultDisplay
+            battingTeam={result.battingTeam}
+            bowlingTeam={result.bowlingTeam}
+            battingWin={result.battingWin}
+            bowlingWin={result.bowlingWin}
+          />
+        )}
+      </div>
     </div>
   );
 } 
