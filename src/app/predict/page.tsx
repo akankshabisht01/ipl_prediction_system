@@ -36,14 +36,15 @@ export default function PredictPage() {
         throw new Error('Backend did not return valid JSON');
       }
       console.log('Response data:', data); // Debug log
+      console.log('Response keys:', Object.keys(data));
       
-      // Only show error if keys are missing
+      let showWarning = false;
       if (
         !('batting_team_win_probability' in data) ||
         !('bowling_team_win_probability' in data)
       ) {
-        setError('Invalid prediction response. Raw response: ' + JSON.stringify(data));
-        return;
+        setError('Warning: Keys missing in response. Raw response: ' + JSON.stringify(data));
+        showWarning = true;
       }
 
       setResult({
@@ -52,6 +53,9 @@ export default function PredictPage() {
         battingWin: Number(data.batting_team_win_probability),
         bowlingWin: Number(data.bowling_team_win_probability),
       });
+      if (showWarning) {
+        setError('Warning: Keys missing in response, but displaying result. Raw response: ' + JSON.stringify(data));
+      }
     } catch (err: any) {
       console.error('Prediction error:', err); // Debug log
       setError(typeof err === 'string' ? err : (err.message || JSON.stringify(err) || 'Something went wrong'));
