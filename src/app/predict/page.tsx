@@ -33,15 +33,18 @@ export default function PredictPage() {
       const data = await response.json();
       console.log('Response data:', data); // Debug log
       
-      if (!data.batting_win || !data.bowling_win) {
+      if (
+        typeof data.batting_team_win_probability !== 'number' ||
+        typeof data.bowling_team_win_probability !== 'number'
+      ) {
         throw new Error('Invalid prediction response');
       }
 
       setResult({
         battingTeam: formData.batting_team,
         bowlingTeam: formData.bowling_team,
-        battingWin: Math.round(Number(data.batting_win) * 100),
-        bowlingWin: Math.round(Number(data.bowling_win) * 100),
+        battingWin: data.batting_team_win_probability,
+        bowlingWin: data.bowling_team_win_probability,
       });
     } catch (err: any) {
       console.error('Prediction error:', err); // Debug log
