@@ -43,11 +43,21 @@ export default function PredictPage() {
       console.log('Response data:', data); // Debug log
       console.log('Response keys:', Object.keys(data));
       
-      if (
-        !('batting_team_win_probability' in data) ||
-        !('bowling_team_win_probability' in data)
-      ) {
-        setError('Invalid prediction response. Raw response: ' + JSON.stringify(data));
+      const hasBatting = 'batting_team_win_probability' in data;
+      const hasBowling = 'bowling_team_win_probability' in data;
+      const battingVal = data.batting_team_win_probability;
+      const bowlingVal = data.bowling_team_win_probability;
+      const battingNum = typeof battingVal === 'number' && !isNaN(battingVal);
+      const bowlingNum = typeof bowlingVal === 'number' && !isNaN(bowlingVal);
+
+      if (!hasBatting || !hasBowling || !battingNum || !bowlingNum) {
+        setError(
+          'Invalid prediction response.\n' +
+          'Expected keys: batting_team_win_probability (number), bowling_team_win_probability (number).\n' +
+          'Actual keys: ' + Object.keys(data).join(', ') + '\n' +
+          'Values: ' + JSON.stringify(data) + '\n' +
+          'Raw response: ' + rawText
+        );
         setResult(null);
         return;
       }
@@ -55,8 +65,8 @@ export default function PredictPage() {
       setResult({
         battingTeam: formData.batting_team,
         bowlingTeam: formData.bowling_team,
-        battingWin: Number(data.batting_team_win_probability),
-        bowlingWin: Number(data.bowling_team_win_probability),
+        battingWin: Number(battingVal),
+        bowlingWin: Number(bowlingVal),
       });
       setError(''); // Clear any previous error
     } catch (err: any) {
