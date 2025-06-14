@@ -37,21 +37,20 @@ export default function PredictPage() {
       }
       console.log('Response data:', data); // Debug log
       
-      // TEMP: Remove type check to allow result display
-      // if (
-      //   typeof data.batting_team_win_probability !== 'number' ||
-      //   typeof data.bowling_team_win_probability !== 'number'
-      // ) {
-      //   console.error('Invalid prediction response structure:', data);
-      //   setError('Invalid prediction response. Raw response: ' + JSON.stringify(data));
-      //   return;
-      // }
+      // Only show error if keys are missing
+      if (
+        !('batting_team_win_probability' in data) ||
+        !('bowling_team_win_probability' in data)
+      ) {
+        setError('Invalid prediction response. Raw response: ' + JSON.stringify(data));
+        return;
+      }
 
       setResult({
         battingTeam: formData.batting_team,
         bowlingTeam: formData.bowling_team,
-        battingWin: data.batting_team_win_probability,
-        bowlingWin: data.bowling_team_win_probability,
+        battingWin: Number(data.batting_team_win_probability),
+        bowlingWin: Number(data.bowling_team_win_probability),
       });
     } catch (err: any) {
       console.error('Prediction error:', err); // Debug log
