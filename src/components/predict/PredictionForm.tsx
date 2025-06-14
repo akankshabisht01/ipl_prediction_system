@@ -81,19 +81,19 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
-      className="max-w-2xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-lg"
+      className="max-w-2xl mx-auto p-8 bg-[#232f47] rounded-2xl shadow-2xl border border-[#26334d] text-white"
     >
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="space-y-6">
           <div>
-            <label htmlFor="batting_team" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Batting Team</label>
+            <label htmlFor="batting_team" className="block text-sm font-medium leading-6 text-white">Batting Team</label>
             <select
               id="batting_team"
               name="batting_team"
               value={formData.batting_team}
               onChange={handleChange}
               required
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             >
               <option value="">Select Batting Team</option>
               {teams.map((team) => (
@@ -102,14 +102,14 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
             </select>
           </div>
           <div>
-            <label htmlFor="bowling_team" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Bowling Team</label>
+            <label htmlFor="bowling_team" className="block text-sm font-medium leading-6 text-white">Bowling Team</label>
             <select
               id="bowling_team"
               name="bowling_team"
               value={formData.bowling_team}
               onChange={handleChange}
               required
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             >
               <option value="">Select Bowling Team</option>
               {teams.filter((team) => team !== formData.batting_team).map((team) => (
@@ -118,14 +118,14 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
             </select>
           </div>
           <div>
-            <label htmlFor="venue" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Venue</label>
+            <label htmlFor="venue" className="block text-sm font-medium leading-6 text-white">Venue</label>
             <select
               id="venue"
               name="venue"
               value={formData.venue}
               onChange={handleChange}
               required
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             >
               <option value="">Select Venue</option>
               {venues.map((venue) => (
@@ -134,7 +134,7 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
             </select>
           </div>
           <div>
-            <label htmlFor="runs_left" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Runs Left</label>
+            <label htmlFor="runs_left" className="block text-sm font-medium leading-6 text-white">Runs Left</label>
             <input
               type="number"
               id="runs_left"
@@ -143,11 +143,11 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
               onChange={handleChange}
               required
               min="0"
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             />
           </div>
           <div>
-            <label htmlFor="balls_left" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Balls Left</label>
+            <label htmlFor="balls_left" className="block text-sm font-medium leading-6 text-white">Balls Left</label>
             <input
               type="number"
               id="balls_left"
@@ -156,11 +156,11 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
               onChange={handleChange}
               required
               min="0"
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             />
           </div>
           <div>
-            <label htmlFor="wickets_left" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Wickets Left</label>
+            <label htmlFor="wickets_left" className="block text-sm font-medium leading-6 text-white">Wickets Left</label>
             <input
               type="number"
               id="wickets_left"
@@ -170,11 +170,11 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
               required
               min="0"
               max="10"
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             />
           </div>
           <div>
-            <label htmlFor="total_runs_x" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Target Runs</label>
+            <label htmlFor="total_runs_x" className="block text-sm font-medium leading-6 text-white">Target Runs</label>
             <input
               type="number"
               id="total_runs_x"
@@ -183,11 +183,11 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
               onChange={handleChange}
               required
               min="0"
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             />
           </div>
           <div>
-            <label htmlFor="crr" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Current Run Rate (CRR)</label>
+            <label htmlFor="crr" className="block text-sm font-medium leading-6 text-white">Current Run Rate (CRR)</label>
             <input
               type="number"
               step="0.01"
@@ -197,11 +197,11 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
               onChange={handleChange}
               required
               min="0"
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             />
           </div>
           <div>
-            <label htmlFor="rrr" className="block text-sm font-medium leading-6 text-gray-900 dark:text-white">Required Run Rate (RRR)</label>
+            <label htmlFor="rrr" className="block text-sm font-medium leading-6 text-white">Required Run Rate (RRR)</label>
             <input
               type="number"
               step="0.01"
@@ -211,14 +211,14 @@ export default function PredictionForm({ onSubmit }: PredictionFormProps) {
               onChange={handleChange}
               required
               min="0"
-              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 dark:text-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-ipl-blue dark:focus:ring-ipl-orange sm:text-sm sm:leading-6"
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-white bg-[#1a2336] ring-1 ring-inset ring-[#26334d] focus:ring-2 focus:ring-ipl-blue focus:bg-[#232f47] sm:text-sm sm:leading-6"
             />
           </div>
         </div>
         <div>
           <button
             type="submit"
-            className="w-full rounded-lg bg-ipl-blue px-8 py-4 text-lg font-bold text-white shadow-lg hover:bg-ipl-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ipl-blue dark:bg-ipl-orange dark:hover:bg-ipl-orange/90 dark:focus-visible:outline-ipl-orange transition-all duration-200"
+            className="w-full rounded-lg bg-ipl-blue px-8 py-4 text-lg font-bold text-white shadow-lg hover:bg-ipl-blue/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ipl-blue transition-all duration-200"
           >
             Predict Winner
           </button>
